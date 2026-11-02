@@ -1,0 +1,37 @@
+# dsh (DeepSeek Harness) 接入 FreePort 的 patch 片段
+# 用法：把下面 `freeport:` 整段合并进你的
+#   ~/.dsh/profiles/<profile>/cordis.patch.yml
+# 里 `id: llm-pi-ai` 条目的 `config.providers` 下。
+#
+# 关键纪律（踩坑实录）：
+#  1. 条目 id 必须是 `llm-pi-ai`（不是 `llm`），否则整段 patch 被跳过。
+#  2. 桌面端读的是 profiles/desktop/，网页端读的是 profiles/web/ —— 改错 profile 等于没改。
+#  3. 改完必须【重启 dsh】，前端 SPA 不热加载 provider 列表。
+#  4. 密钥走环境变量 FREE_PORT_KEY（从 .env 读），不要写死明文。
+
+- id: agent-default-model          # 可选：把默认模型设成 FreePort 免费模型
+  name: "@deepseek-ai/dsh-agent-default-model"
+  config:
+    provider: freeport
+    model: Free · deepseek-v4.1-flash-free
+
+- id: llm-pi-ai
+  name: "@deepseek-ai/dsh-llm-pi-ai"
+  config:
+    providers:
+      # ===== 在这里粘贴 freeport 段 =====
+      freeport:
+        api: openai-completions
+        apiKeyEnv: FREE_PORT_KEY
+        baseURL: http://127.0.0.1:41980/v1
+        displayName: FreePort (OpenCode free)
+        defaultContextWindow: 128000
+        defaultMaxTokens: 8192
+        models:
+          - id: Free · deepseek-v4.1-flash-free
+            name: DeepSeek V4.1 Flash Free (FreePort)
+          - id: Free · glm-5.3-flash-free
+            name: GLM 5.3 Flash Free (FreePort)
+          - id: Free · big-pickle
+            name: Big Pickle (FreePort)
+      # ===== freeport 段结束 =====
